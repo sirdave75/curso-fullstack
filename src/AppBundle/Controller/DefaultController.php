@@ -5,6 +5,10 @@ namespace AppBundle\Controller;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Serializer\Encoder\JsonEncoder;
+use Symfony\Component\Serializer\Normalizer\GetSetMethodNormalizer;
+use Symfony\Component\Serializer\Serializer;
 
 class DefaultController extends Controller
 {
@@ -25,8 +29,23 @@ class DefaultController extends Controller
     {
         $em = $this->getDoctrine()->getManager();
         $users = $em->getRepository('BackendBundle:User')->findAll();
-
-        var_dump($users);
-        die();
+        //$pruebas = ["id" =>1,"nombre"=>"David"];
+        return $this->getJson($users);
     }
+
+    //Método que devuelve un json
+    public function getJson($data){
+        $normalizers = array(new GetSetMethodNormalizer());
+        $encoders = array("json" => new JsonEncoder());
+
+        $serializer  = new Serializer($normalizers,$encoders);
+        $json = $serializer->serialize($data,'json');
+
+        $response = new Response();
+        $response->setContent($json);
+        $response->headers->set("Content-Type", "application/json");
+        return $response;
+
+    }
+
 }
