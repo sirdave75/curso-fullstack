@@ -47,11 +47,6 @@ class User
      */
     private $createdAt;
 
-    /**
-     * @var \DateTime
-     */
-    private $updatedAt;
-
 
     /**
      * Get id
@@ -229,30 +224,6 @@ class User
     public function getCreatedAt()
     {
         return $this->createdAt;
-    }
-
-    /**
-     * Set updatedAt
-     *
-     * @param \DateTime $updatedAt
-     *
-     * @return User
-     */
-    public function setUpdatedAt($updatedAt)
-    {
-        $this->updatedAt = $updatedAt;
-
-        return $this;
-    }
-
-    /**
-     * Get updatedAt
-     *
-     * @return \DateTime
-     */
-    public function getUpdatedAt()
-    {
-        return $this->updatedAt;
     }
 }
 

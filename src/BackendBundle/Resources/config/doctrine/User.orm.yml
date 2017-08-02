@@ -43,16 +43,12 @@ BackendBundle\Entity\User:
                 fixed: false
         image:
             type: string
-            nullable: false
+            nullable: true
             length: 255
             options:
                 fixed: false
         createdAt:
             type: datetime
-            nullable: false
-            column: created_at
-        updatedAt:
-            type: datetime
             nullable: true
-            column: updated_at
+            column: created_at
     lifecycleCallbacks: {  }
