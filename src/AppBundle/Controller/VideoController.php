@@ -21,7 +21,7 @@ use BackendBundle\Entity\Video;
 
 class VideoController extends Controller
 {
-        public function newAction(Request $request){
+    public function newAction(Request $request){
             $helpers = $this->get(Helpers::class);
             $hash = $request->get("authorization",null);
             $authCheck = $helpers->authCheck($hash);
@@ -93,5 +93,174 @@ class VideoController extends Controller
                     "msg" => "Usuario no autorizado"
                 ];
             }
+            return $helpers->getJson($data);
         }
+    public function editAction(Request $request,$id = null){
+        $helpers = $this->get(Helpers::class);
+        $hash = $request->get("authorization",null);
+        $authCheck = $helpers->authCheck($hash);
+        if($authCheck){
+            $identity = $helpers->authCheck($hash,true);
+            $json = $request->get("json",true);
+            if($json != null) {
+                $params = json_decode($json);
+                $video_id = $id;
+                $createdAt = new \DateTime('now');
+                $updatedAt = new \DateTime('now');
+                $imagen = null;
+                $video_path = null;
+
+                $user_id = ($identity->sub != null) ? $identity->sub : null;
+                $title = (isset($params->title)) ? $params->title : null;
+                $description = (isset($params->description)) ? $params->description : null;
+                $status = (isset($params->status)) ? $params->status : null;
+
+                if($user_id != null && $title != null){
+                    $em = $this->getDoctrine()->getManager();
+                    $video = $em->getRepository("BackendBundle:Video")->findOneBy([
+                       "id" => $video_id
+                    ]);
+                    if(isset($identity->sub) && $identity->sub == $video->getUser()->getId()) {
+
+                        $video->setTitle($title);
+                        $video->setDescription($description);
+                        $video->setStatus($status);
+                        $video->setUpdatedAt($createdAt);
+
+                        $em->persist($video);
+                        $em->flush();
+
+                        $data = [
+                            "status" => "success",
+                            "code" => 200,
+                            "msg" => "Vídeo actualizado correctamente"
+                        ];
+                    }
+                    else{
+                        $data = [
+                            "status" => "error",
+                            "code" => 400,
+                            "msg" => "Vídeo no actualizado."
+                        ];
+                    }
+                }
+                else{
+                    $data = [
+                        "status" => "error",
+                        "code" => 400,
+                        "msg" => "video not created"
+                    ];
+                }
+
+            }
+            else{
+                $data = [
+                    "status" => "error",
+                    "code" => 400,
+                    "msg" => "video not created, params failed"
+                ];
+            }
+        }
+        else{
+            $data = [
+                "status" => "error",
+                "code" => 400,
+                "msg" => "Usuario no autorizado"
+            ];
+        }
+        return $helpers->getJson($data);
+    }
+
+    public function uploadAction(Request $request,$id){
+        $helpers = $this->get(Helpers::class);
+        $hash = $request->get("authorization",null);
+        $authCheck = $helpers->authCheck($hash);
+        //var_dump($hash);
+        if($authCheck) {
+            $identity = $helpers->authCheck($hash, true);
+
+            $video_id = $id;
+
+            $em = $this->getDoctrine()->getManager();
+            $video = $em ->getRepository("BackendBundle:Video")->findOneBy([
+               "id" => $video_id
+            ]);
+
+            if($video_id != null && isset($identity->sub) && $identity->sub == $video->getUser()->getId()){
+                $file = $request->files->get('image', null);
+                $file_video = $request->files->get('video', null);
+                if($file != null && !empty($file)){
+                    $ext = $file->guessExtension();
+                    if($ext == 'jpeg' || $ext == 'jpg' || $ext == 'png' || $ext == 'gif') {
+
+                        $file_name = time().'.'.$ext;
+                        $path_of_file = "uploads/video_images/video_".$video_id;
+                        $file->move($path_of_file, $file_name);
+
+                        $video->setImage($file_name);
+                        $em->persist($video);
+                        $em->flush();
+                        $data = [
+                            "status" => "success",
+                            "code" => 200,
+                            "msg" => "Imagen  del video subida correctamente"
+                        ] ;
+                    }
+                    else{
+                        $data = [
+                            "status" => "error",
+                            "code" => 400,
+                            "msg" => "Extensión de la imagen no válida"
+                        ] ;
+                    }
+                }
+                else{
+                    if($file_video != null && !empty($file_video)){
+                        $ext = $file_video->guessExtension();
+                        if($ext == 'mp4' || $ext == 'avi') {
+
+                            $file_name = time().'.'.$ext;
+                            $path_of_file = "uploads/video_files/video_".$video_id;
+                            $file_video->move($path_of_file, $file_name);
+
+                            $video->setVideoPath($file_name);
+                            $em->persist($video);
+                            $em->flush();
+
+                            $data = [
+                                "status" => "success",
+                                "code" => 200,
+                                "msg" => "Vídeo subido correctamente"
+                            ] ;
+                        }
+                        else{
+
+                            $data = [
+                                "status" => "error",
+                                "code" => 400,
+                                "msg" => "Extensión del vídeo no válida"
+                            ] ;
+                        }
+                    }
+                }
+            }
+            else{
+                $data = [
+                    "status" => "error",
+                    "code" => 400,
+                    "msg" => "Video updated error, you not owner"
+                ] ;
+
+            }
+
+        }
+        else{
+            $data = [
+                "status" => "error",
+                "code" => 400,
+                "msg" => "Usuario no autorizado"
+            ] ;
+        }
+        return $helpers->getJson($data);
+    }
 }
