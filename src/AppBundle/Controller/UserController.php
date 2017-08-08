@@ -168,4 +168,63 @@ class UserController extends Controller
 
         return $helpers->getJson($data);
     }
+
+    public function uploadImageAction(Request $request){
+        $helpers = $this->get(Helpers::class);
+
+        $hash = $request->get("authorization",null);
+        $authCheck = $helpers->authCheck($hash);
+
+        if($authCheck){
+            $identity = $helpers->authCheck($hash,true);
+            $em = $this->getDoctrine()->getManager();
+            $user = $em -> getRepository("BackendBundle:User")->findOneBy([
+               "id" => $identity->sub
+            ]);
+
+            //upload file
+            $file = $request->files->get("image");
+           // var_dump($file);
+            if(!empty($file) && $file != null){
+                $ext = $file->guessExtension();
+                if($ext == "jpeg" || $ext == "jpg" || $ext == "png" || $ext == "gif") {
+                    $file_name = time().".".$ext;
+                    $file->move("uploads/users", $file_name);
+
+                    $user->setImage($file_name);
+                    $em->persist($user);
+                    $em->flush();
+
+                    $data = [
+                        "status" => "success",
+                        "code" => 200,
+                        "msg" => "Imagen subida correctamente"
+                    ];
+                }
+                else{
+                    $data = [
+                        "status" => "error",
+                        "code" => 400,
+                        "msg" => "Extensión no válida"
+                    ];
+                }
+            }
+            else{
+                $data = [
+                    "status" => "error",
+                    "code"  => 400,
+                    "msg"   => "La imagen no se ha subido: "
+                ];
+            }
+        }
+        else{
+            $data = [
+                "status" => "error",
+                "code"  => 400,
+                "msg"   => "Authorization not valid"
+            ];
+        }
+
+        return $helpers->getJson($data);
+    }
 }
