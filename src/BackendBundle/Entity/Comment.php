@@ -139,4 +139,3 @@ class Comment
         return $this->video;
     }
 }
-

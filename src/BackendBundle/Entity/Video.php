@@ -255,4 +255,3 @@ class Video
         return $this->user;
     }
 }
-

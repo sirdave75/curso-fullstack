@@ -55,7 +55,7 @@ BackendBundle\Entity\Video:
             nullable: false
             options:
                 default: CURRENT_TIMESTAMP
-            column: update_at
+            column: updated_at
     manyToOne:
         user:
             targetEntity: User
