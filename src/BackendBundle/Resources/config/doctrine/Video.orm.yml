@@ -50,7 +50,7 @@ BackendBundle\Entity\Video:
             type: datetime
             nullable: true
             column: created_at
-        updateAt:
+        updatedAt:
             type: datetime
             nullable: false
             options:
