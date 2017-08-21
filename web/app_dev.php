@@ -17,7 +17,17 @@ if (isset($_SERVER['HTTP_CLIENT_IP'])
     header('HTTP/1.0 403 Forbidden');
     exit('You are not allowed to access this file. Check '.basename(__FILE__).' for more information.');
 }
+//reglas de configuracion para trabajar desde angular
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-HEaders: X-API-KEY, Origin, X-Requested-With, Content-Type, Accept, Access-Control-Request-Method");
+header("Access-Cpntrol-Allow-Methods: GET, POST, OPTIONS, PUT, DELETE");
+header("Allow: GET, POST, OPTIONS, PUT, DELETE");
+$method = $_SERVER["REQUEST_METHOD"];
 
+if($method == "OPTIONS"){
+    die();
+}
+//fin reglas
 require __DIR__.'/../vendor/autoload.php';
 Debug::enable();
 
