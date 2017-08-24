@@ -16,3 +16,8 @@ user_channel:
     path:   /channel/{id}
     defaults:  { _controller:  "AppBundle:user:channel", id: null}
     methods:   GET
+
+user_user:
+    path:   /user
+    defaults:  { _controller:  "AppBundle:User:user"}
+    methods:   POST

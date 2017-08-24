@@ -18,7 +18,43 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 
 class UserController extends Controller
 {
-        public function newAction(Request $request){
+    public function userAction(Request $request){
+        $helpers = $this->get(Helpers::class);
+        $hash = $request->get("authorization",null);
+        $authCheck = $helpers->authCheck($hash);
+        if($authCheck) {
+            $identity = $helpers->authCheck($hash, true);
+            $em = $this->getDoctrine()->getManager();
+            $user = $em -> getRepository("BackendBundle:User")->findOneBy([
+                "id" => $identity->sub
+            ]);
+
+            $data = [
+                "status" => "error",
+                "code" => 400,
+                "msg" => "Usuario no encontrado: ".$identity->sub
+            ];
+
+            if(is_object($user)) {
+                $data = [
+                    "status" => "success",
+                    "code" => "200",
+                    "data" => $user
+                ];
+
+            }
+
+        }
+        else{
+            $data = [
+                "status" => "error",
+                "code" => 400,
+                "msg" => "Usuario no autorizado: "
+            ];
+        }
+        return $helpers->getJson($data);
+    }
+    public function newAction(Request $request){
 
            $helpers = $this->get(Helpers::class);
            $json = $request->get("json",null);
@@ -28,6 +64,7 @@ class UserController extends Controller
                 "code" => 400,
                 "msg" => "Usuario no se ha creado"
             ];
+
            if($json != null) {
 
                $createdAt = new \DateTime("now");
@@ -35,8 +72,8 @@ class UserController extends Controller
                $role = "user";
 
                $email = (isset($params->email)) ? $params->email : null;
-               $name = (isset($params->name) && ctype_alpha($params->name)) ? $params->name : null;
-               $surname = (isset($params->surname) && ctype_alpha($params->surname)) ? $params->surname : null;
+               $name = (isset($params->name) && !ctype_digit($params->name)) ? $params->name : null;
+               $surname = (isset($params->surname) && !ctype_digit($params->surname)) ? $params->surname : null;
                $password = (isset($params->password)) ? $params->password : null;
 
                $emailConstraint = new Assert\Email();
@@ -76,9 +113,17 @@ class UserController extends Controller
                    else{
                        $data = [
                            "status" => "error",
+                           "code" => 400,
                            "msg" => "Usuario duplicado !!"
                        ];
                    }
+               }
+               else{
+                   $data = [
+                       "status" => "error",
+                       "code" => 400,
+                       "msg" => "Error en los datos"
+                   ];
                }
            }
            return $helpers->getJson($data);
@@ -107,13 +152,14 @@ class UserController extends Controller
             if($json != null) {
 
                 $createdAt = new \DateTime("now");
-                $image = null;
+
                 $role = "user";
 
                 $email = (isset($params->email)) ? $params->email : null;
-                $name = (isset($params->name) && ctype_alpha($params->name)) ? $params->name : null;
-                $surname = (isset($params->surname) && ctype_alpha($params->surname)) ? $params->surname : null;
+                $name = (isset($params->name) && !ctype_digit($params->name)) ? $params->name : null;
+                $surname = (isset($params->surname) && !ctype_digit($params->surname)) ? $params->surname : null;
                 $password = (isset($params->password)) ? $params->password : null;
+                $image = (isset($params->image)) ? $params->image : null;
 
                 $emailConstraint = new Assert\Email();
                 $emailConstraint->message = "This email is not valid !!";
@@ -129,7 +175,7 @@ class UserController extends Controller
                     $user -> setName($name);
                     $user -> setSurname($surname);
 
-                    if($password != null) {
+                    if($password != null && !empty($password)) {
                         //cifrar la contraseña
                         $pwd = hash('sha256', $password);
                         $user->setPassword($pwd);
