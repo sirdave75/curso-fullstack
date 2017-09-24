@@ -237,6 +237,10 @@ class UserController extends Controller
                     $file_name = time().".".$ext;
                     $file->move("uploads/users", $file_name);
 
+                    $imagen = $user->getImage();
+                    if($imagen != null && is_file("uploads/users/".$imagen)) {
+                        unlink("uploads/users/".$imagen);
+                    }
                     $user->setImage($file_name);
                     $em->persist($user);
                     $em->flush();

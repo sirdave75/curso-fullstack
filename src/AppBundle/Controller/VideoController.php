@@ -25,6 +25,7 @@ class VideoController extends Controller
             $helpers = $this->get(Helpers::class);
             $hash = $request->get("authorization",null);
             $authCheck = $helpers->authCheck($hash);
+
             if($authCheck){
                 $identity = $helpers->authCheck($hash,true);
                 $json = $request->get("json",true);
