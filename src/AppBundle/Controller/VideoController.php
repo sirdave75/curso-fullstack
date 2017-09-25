@@ -315,7 +315,6 @@ class VideoController extends Controller
     public function videoAction(Request $request, $id = null){
         $helpers = $this->get(Helpers::class);
         $em = $this->getDoctrine()->getManager();
-
         $video = $em ->getRepository("BackendBundle:Video")->findOneBy([
             "id" => $id
         ]);
